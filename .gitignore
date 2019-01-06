@@ -1,3 +1,7 @@
+# Created files
+music/
+queue.json
+
 # Logs
 logs
 *.log
