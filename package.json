@@ -1,17 +1,20 @@
 {
   "name": "music-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "The collaborative music queue",
+  "repository": "https://github.com/lcomstive/MusicServer",
+  "main": "./src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./src/index.js"
   },
   "author": "klemze",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "ffmpeg-binaries": "^4.0.0",
+    "mp3-duration": "^1.1.0",
+    "simple-websocket": "^7.2.0",
     "youtube-mp3-downloader": "^0.5.3"
   }
 }

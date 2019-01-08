@@ -1,0 +1,110 @@
+let websocket = undefined
+let elements = {}
+let lastSongID = 0
+
+gotBulkData = (data) =>
+{
+	console.log('Bulk Data')
+
+	changeSong(data.currentSong)
+
+	for(let i = 0; i < data.queue.length; i++)
+	{
+		let text = `[${i}] `
+		if(data.queue[i].artist)
+			text += `${data.queue[i].artist} - `
+		text += data.queue[i].title
+		$('#queueList').append(`<p>${text}</p>`)
+	}
+}
+
+gotUpdate = (data) =>
+{
+	// TODO: Move this stuff to be local
+	let minutesLeft = Math.floor(data.durationRemaining / 60)
+	let secondsLeft = Math.floor(data.durationRemaining % 60)
+
+	elements.seekSlider.title.innerHTML = `${data.artist && data.artist != 'Unknown' ? ('[' + data.artist + ']') : ''} ${data.title}`
+	elements.seekSlider.time.innerHTML = `${minutesLeft}:${secondsLeft < 10 ? ('0' + secondsLeft) : secondsLeft}`
+	elements.seekSlider.slider.max = data.durationTotal
+	elements.seekSlider.slider.value = data.durationTotal - data.durationRemaining
+
+	let value = (data.durationTotal - data.durationRemaining) / data.durationTotal
+	elements.seekSlider.slider.style.backgroundImage = `-webkit-gradient(linear, left top, right top, color-stop(${value}, #576c99), color-stop(${value}, #434956))`
+
+	if(data.ID != lastSongID)
+		changeSong(data)
+}
+
+changeSong = (currentSong) =>
+{
+	console.log(JSON.stringify(currentSong))
+	elements.audio.src = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/${currentSong.path}`
+	elements.audio.currentTime = currentSong.durationTotal - currentSong.durationRemaining
+	/*
+	try { elements.audio.play() }
+	catch(e) { console.log(e) }
+	*/
+	console.log(`Audio source: ${elements.audio.src}`)
+
+	lastSongID = currentSong.ID
+}
+
+$('.slider').change(() =>
+{
+	console.log('CHANGE')
+	let val = ($(this).val() - $(this).attr('min')) / ($(this).attr('max') - $(this).attr('min'))
+	$(this).css('background-image',
+				'-webkit-gradient(linear, left top, right top, ' +
+				`color-stop(${val}, purple), ` +
+				`color-stop(${val}, yellow))`
+				)
+})
+
+$(document).ready(() =>
+{
+	elements.seekSlider = {
+		title: document.getElementById('songTitle'),
+		time: document.getElementById('seekTime'),
+		slider: document.getElementById('seekSlider')
+	}
+	elements.audio = document.createElement('audio')
+	elements.audio.autoplay = true
+	elements.audio.volume = 0.5
+
+	websocket = new SimpleWebsocket(`ws://${window.location.hostname}:8082`)
+	websocket.on('connect', () => { console.log('Websocket connected')  })
+	websocket.on('close', () => { console.log('Websocket disconnected') })
+	websocket.on('data', (data) =>
+	{
+		data = JSON.parse(data)
+		if(!data.type)
+			return
+		// console.log(`Got data: ${JSON.stringify(data)}`)
+		switch(data.type)
+		{
+			default: console.log(`Got data: ${JSON.stringify(data)}`); break;
+			case 'bulk': gotBulkData(data.info); break;
+			case 'update': gotUpdate(data.info); break;
+		}
+	})
+})
+
+$(window).on('beforeunload', () => { websocket.destroy() })
+
+/*
+$.getJSON(CurrentSongURL, (data) =>
+{
+	let songInfo = ''
+	let minutesLeft = Math.floor(data.durationRemaining / 60)
+	let secondsLeft = data.durationRemaining % 60
+
+	if(data.artist && data.artist != 'Unknown')
+		songInfo += `[${data.artist}] `
+	songInfo += `${data.title} `
+	songInfo += `(${minutesLeft}:${secondsLeft < 10 ? ('0' + secondsLeft) : secondsLeft}) `
+	if(data.paused)
+		songInfo += '(<b>PAUSED</b>)'
+	document.getElementById('currentSongInfo').innerHTML = songInfo
+})
+*/

@@ -1,0 +1,202 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat');
+
+:root
+{
+	--accent-colour: #576C99;
+	--border-radius: 3px;
+	--button-border-radius: 50px;
+	--background: url('https://i.imgur.com/0IWb7dn.gif');
+	--foreground: #e5e7ea;
+	--bluriness: 2.5px;
+	--font: 'Montserrat';
+	--font-size: 1.25vw;
+	--font-size2: 1vw;
+}
+
+html { background: var(--background-backup); }
+
+body, html
+{
+	width: 100%;
+	height: 100%;
+
+	margin: 0;
+	padding: 0;
+
+	color: var(--foreground);
+	font-size: var(--font-size);
+	font-family: var(--font), sans-serif;
+
+	background: var(--background);
+	background-size: cover;
+	background-position: right center;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+}
+
+#musicPlayer
+{
+	position: absolute;
+
+	left: 30vw;
+	right: 30vw;
+	top: 45vh;
+	bottom: 45vh;
+
+	width: 40vw;
+	height: 10vh;
+
+	color: var(--foreground);
+	background: inherit;
+	overflow: hidden;
+	border-radius: var(--border-radius);
+}
+
+#musicPlayer:before
+{
+	content: '';
+	background: inherit;
+	position: absolute;
+	left: -25px;
+	right: 0;
+	top: -25px;
+	bottom: 0;
+	box-shadow: inset 0 0 0 35vw rgba(255, 255, 255, 0.1);
+	filter: blur(var(--bluriness));
+	-webkit-filter: blur(var(--bluriness));
+}
+
+.musicPlayerContent
+{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+
+	position: absolute;
+	left: 0; right: 0;
+	top: 0; bottom: 0;
+
+	padding: 0;
+	margin: 0;
+}
+
+#songTitle
+{
+	font-size: var(--font-size);
+	margin: auto;
+	padding: 0;
+	text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.1);
+
+	text-align: center;
+}
+
+#songDuration
+{
+	font-size: var(--font-size2);
+	color: var(--accent-colour);
+	text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.1);
+
+	width: 10%;
+	margin: 0;
+	margin-bottom: 1vw;
+	text-align: right;
+	flex-grow: 0;
+	margin-right: 10px;
+	position: inline-flex;
+}
+
+.flexRow { display: flex; flex-direction: row; justify-content: center; }
+
+#musicControls
+{
+	flex-grow: 2;
+	width: 30%;
+	margin-left: 30%;
+	margin-right: calc(20% - 10px);
+	display: flex;
+	justify-content: center;
+	margin-bottom: 1vw;
+}
+
+#musicControls button
+{
+	color: var(--foreground);
+	background: none;
+	border: none;
+	border-radius: var(--button-border-radius);
+	transition: all 0.15s ease-in-out;
+	width: 33%;
+}
+
+#musicControls button:active { opacity: 0.5; }
+#musicControls button:focus { outline: none; }
+#musicControls button:hover { background-color: var(--accent-colour); }
+
+#seekSlider
+{
+	margin: 0;
+	position: absolute;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+
+	appearance: none;
+	-webkit-appearance: none;
+
+	width: 100%;
+	height: .3vh;
+	background-image: -webkit-gradient(linear, left top, right top, color-stop(0.5, var(--accent-colour)), color-stop(0.5, var(--foreground)));
+	outline: none;
+}
+
+#seekSlider::-webkit-slider-thumb
+{
+	-webkit-appearance: none;
+	width: 1.2vh;
+	height: 1.2vh;
+	border-radius: var(--button-border-radius);
+	background: var(--accent-colour);
+}
+
+#seekSlider::-moz-range-thumb
+{
+	width: 1.2vh;
+	height: 1.2vh;
+	background: var(--accent-colour);
+	border-radius: var(--button-border-radius);
+}
+
+@media screen and (max-width: 600px)
+{
+	:root
+	{
+		--font-size: 3.5vw;
+		--font-size2: 2.5vw;
+	}
+
+	#musicPlayer
+	{
+		width: 90vw;
+		left: 5vw;
+		right: 5vw;
+	}
+}
+
+@media screen and (min-width: 600px) and (max-width: 800px)
+{
+	:root
+	{
+		--font-size: 1.75vw;
+		--font-size2: 1.25vw;
+	}
+}
+
+@media screen and (max-height: 500px)
+{
+	#musicPlayer
+	{
+		height: 20vh;
+		top: 40vh;
+		bottom: 40vh;
+	}
+}
