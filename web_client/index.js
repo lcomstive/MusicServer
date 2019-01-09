@@ -112,7 +112,8 @@ togglePause = (pause = undefined, local = false) =>
 		}
 		else
 		{
-			elements.audio.play()
+			if(elements.audio.readyState >= 3)
+				elements.audio.play()
 			resetInterval()
 		}
 	}
@@ -151,13 +152,18 @@ changeSong = (song) =>
 	slider.css('background-image', `${getThemeProperty('foreground')}`)
 	slider.attr('max', song.durationTotal)
 	elements.controls.slider.value = 0
+
+	// Set interval and audio paused correctly
+	togglePause(song.paused, true)
 }
 
 /** CALLBACKS **/
 gotBulkData = (data) =>
 {
 	console.log('Bulk Data')
-	changeSong(data.currentSong)
+
+	// changeSong(data.currentSong)
+	gotUpdate(data.currentSong)
 
 	/*
 	for(let i = 0; i < data.queue.length; i++)
