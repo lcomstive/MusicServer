@@ -8,7 +8,6 @@ const YoutubeMP3Downloader = require('youtube-mp3-downloader')
 songTemplate = (videoID) => { return {
 		id: videoID,
 		file: undefined,
-		artist: undefined,
 		title: undefined,
 		thumbnail: undefined,
 		progress: {
@@ -61,7 +60,7 @@ module.exports = class Downloader
 			// Print to console and invoke any existing callback
 			console.log(`Progress for '${data.videoId}' - ${Math.ceil(data.progress.percentage)}% - ETA of ${data.progress.eta} seconds - ${Math.floor(data.progress.speed / 8096)}KB/s (runtime ${data.progress.runtime}s)`)
 			if(this._callbacks[data.videoId] && this._callbacks[data.videoId].progress)
-				this._callbacks[data.videoId].progress('', data)
+				this._callbacks[data.videoId].progress(data)
 		})
 
 		this._ytdl.on('finished', (err, data) =>
@@ -182,7 +181,6 @@ module.exports = class Downloader
 	// song {
 	//		id : number   	- YouTube video ID
 	//		file : string 	- Path to file
-	//		artist : string - Song artist
 	//		title : string 	- Song title
 	//		duration : number - Song length in seconds
 	//		progress : {
@@ -222,8 +220,7 @@ module.exports = class Downloader
 		// Update song map
 		let song = this.songs.get(data.videoId)
 		song.file = `music/${data.videoId}.mp3`,
-		song.artist = data.artist,
-		song.title = data.title,
+		song.title = (data.videoTitle ? data.videoTitle.replace(/(\[.*\]|\/\/.*)/g, '') : (data.title || 'No Title?')),
 		song.thumbnail = data.thumbnail
 		song.progress = {
 			percentage: 100,
@@ -240,8 +237,7 @@ module.exports = class Downloader
 			this._cache.songs[cacheIndex] = song
 		this._cache.save()
 
-		// Print to console and invoke any existing callback
-		// console.log(`Finished '${data.artist} - ${data.title}' (${data.videoId})`)
+		// Invoke any existing callback
 		if(this._callbacks[data.videoId] && this._callbacks[data.videoId].finished)
 			this._callbacks[data.videoId].finished(data)
 		else

@@ -7,10 +7,16 @@
 	--button-border-radius: 50px;
 	--background: url('https://i.imgur.com/0IWb7dn.gif');
 	--foreground: #e5e7ea;
-	--bluriness: 2.5px;
+	--bluriness: 0px;
 	--font: 'Montserrat';
 	--font-size: 1.25vw;
 	--font-size2: 1vw;
+
+	--transition-time: 0.1s ease;
+	--side-panel-button-size: 2.2vw;
+
+	--gradient-value: 0%;
+	--gradient-value-settings-volume: 50%;
 }
 
 html { background: var(--background-backup); }
@@ -22,6 +28,7 @@ body, html
 
 	margin: 0;
 	padding: 0;
+	overflow: hidden;
 
 	color: var(--foreground);
 	font-size: var(--font-size);
@@ -32,6 +39,26 @@ body, html
 	background-position: right center;
 	background-repeat: no-repeat;
 	background-attachment: fixed;
+}
+
+.blur
+{
+	background: inherit;
+	overflow: hidden;
+}
+
+.blur:before
+{
+	content: " ";
+	background: inherit;
+	position: absolute;
+	left: -25px;
+	right: -25px;
+	top: -25px;
+	bottom: -25px;
+	box-shadow: inset 0 0 0 100vw rgba(255, 255, 255, 0.075);
+	filter: blur(var(--bluriness));
+	-webkit-filter: blur(var(--bluriness));
 }
 
 #musicPlayer
@@ -46,24 +73,9 @@ body, html
 	width: 40vw;
 	height: 10vh;
 
-	color: var(--foreground);
-	background: inherit;
 	overflow: hidden;
+	color: var(--foreground);
 	border-radius: var(--border-radius);
-}
-
-#musicPlayer:before
-{
-	content: '';
-	background: inherit;
-	position: absolute;
-	left: -25px;
-	right: 0;
-	top: -25px;
-	bottom: 0;
-	box-shadow: inset 0 0 0 35vw rgba(255, 255, 255, 0.1);
-	filter: blur(var(--bluriness));
-	-webkit-filter: blur(var(--bluriness));
 }
 
 .musicPlayerContent
@@ -120,15 +132,17 @@ body, html
 
 #musicControls button
 {
+	font-size: calc(var(--font-size2) * 0.75);
 	color: var(--foreground);
 	background: none;
 	border: none;
 	border-radius: var(--button-border-radius);
-	transition: all 0.15s ease-in-out;
+	-webkit-transition: all var(--transition-time);
+	transition: all var(--transition-time);
 	width: 33%;
 }
 
-#musicControls button:active { opacity: 0.5; }
+#musicControls button:active { opacity: 0.5; outline: none; }
 #musicControls button:focus { outline: none; }
 #musicControls button:hover { background-color: var(--accent-colour); }
 
@@ -136,29 +150,39 @@ body, html
 {
 	margin: 0;
 	position: absolute;
-	left: 0px;
-	right: 0px;
-	bottom: 0px;
-
-	appearance: none;
-	-webkit-appearance: none;
-
+	left: 0; right: 0;
+	bottom: 5px;
 	width: 100%;
-	height: .3vh;
-	background-image: -webkit-gradient(linear, left top, right top, color-stop(0.5, var(--accent-colour)), color-stop(0.5, var(--foreground)));
-	outline: none;
 }
 
-#seekSlider::-webkit-slider-thumb
+input[type=range]
 {
+	appearance: none;
+	-moz-appearance: none;
 	-webkit-appearance: none;
+
+	height: .3vh;
+	outline: none;
+
+	background: var(--foreground);
+	background: -moz-linear-gradient(left, var(--accent-colour) var(--gradient-value), var(--foreground) var(--gradient-value));
+	background: -webkit-linear-gradient(to right, var(--accent-colour) var(--gradient-value), var(--foreground) var(--gradient-value));
+	background: linear-gradient(to right, var(--accent-colour) var(--gradient-value), var(--foreground) var(--gradient-value));
+}
+
+input[type=range]::-webkit-slider-thumb
+{
+	appearance: none;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+
 	width: 1.2vh;
 	height: 1.2vh;
 	border-radius: var(--button-border-radius);
 	background: var(--accent-colour);
 }
 
-#seekSlider::-moz-range-thumb
+input[type=range]::-moz-range-thumb
 {
 	width: 1.2vh;
 	height: 1.2vh;
@@ -166,7 +190,231 @@ body, html
 	border-radius: var(--button-border-radius);
 }
 
-@media screen and (max-width: 600px)
+/** SIDE CONTENT **/
+#sidePanel
+{
+	width: 20vw;
+	height: calc(100% - 3vw);
+	border-top-left-radius: var(--border-radius);
+	border-bottom-left-radius: var(--border-radius);
+	position: absolute;
+	right: 1.5vw;
+	top: 1.5vw;
+	background: inherit;
+
+	-webkit-transition: all var(--transition-time);
+	transition: all var(--transition-time);
+}
+
+.hidden { transform: translateX(21.5vw); }
+
+#sidePanelContent
+{
+	position: absolute;
+	top: 0; bottom: 0;
+	left: 0; right: 0;
+}
+
+#sidePanelContent > div
+{
+	display: none;
+	position: absolute;
+	left: 1vw; right: 1vw;
+	top: 1vw; bottom: 1vw;
+	margin: 0;
+	padding: 0;
+}
+
+#sidePanelContent .active
+{
+	display: flex;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	overflow: hidden;
+}
+
+#sidePanel_settings > *, #sidePanel_queue > *
+{
+	margin: 0;
+	margin-bottom: 10px;
+	width: 100%;
+	height: 2.5vh;
+}
+
+#sidePanel_settings .row, #sidePanel_queue .row { display: flex; flex-direction: row; }
+#sidePanel_settings .row > *, #sidePanel_queue .row > * { width: 45%; margin: 0; }
+#sidePanel_settings .row input[type=range], #sidePanel_queue .row input[type=range] { width: 45%; height: 0.3vh; margin-top: 1.2vh; }
+
+#settingsVolumeSlider
+{
+	background: var(--foreground);
+	background: -moz-linear-gradient(left, var(--accent-colour) var(--gradient-value-settings-volume), var(--foreground) var(--gradient-value-settings-volume));
+	background: -webkit-linear-gradient(to right, var(--accent-colour) var(--gradient-value-settings-volume), var(--foreground) var(--gradient-value-settings-volume));
+	background: linear-gradient(to right, var(--accent-colour) var(--gradient-value-settings-volume), var(--foreground) var(--gradient-value-settings-volume));
+}
+
+#buttonGroup
+{
+	background: inherit;
+	position: absolute;
+	right: calc(var(--side-panel-button-size) * 0.25);
+	top: calc(var(--side-panel-button-size) * 0.25);
+
+	width: var(--side-panel-button-size);
+	height: calc(var(--side-panel-button-size) * 3.3);
+}
+
+.buttonGroup
+{
+	position: absolute;
+	width: var(--side-panel-button-size);
+	height: var(--side-panel-button-size);
+
+	top: 0;
+	left: calc(var(--side-panel-button-size) * -1.1);
+}
+
+.buttonGroup button
+{
+	position: absolute;
+	overflow: hidden;
+
+	font-size: calc(var(--font-size2) * 0.75);
+	width: 100%;
+	height: 100%;
+	background: none;
+	color: var(--foreground);
+	border: none;
+	opacity: 1;
+	border-radius: var(--border-radius);
+
+	-webkit-transition: all var(--transition-time);
+	transition: all var(--transition-time);
+}
+
+.buttonGroup button:hover { background: var(--accent-colour); opacity: 1.0; }
+.buttonGroup button:active { background: var(--accent-colour); opacity: 0.75; }
+
+/* Side Panel Queue */
+#sidePanel_queue
+{
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+}
+
+#queueItems
+{
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: var(--border-radius);
+
+	flex-grow: 98;
+	overflow-y: auto;
+}
+
+.queueItem
+{
+	display: flex;
+	padding: 0.25vw;
+	height: 2vh;
+}
+.queueItem:nth-child(even) { background: rgba(255, 255, 255, 0.2); }
+
+.queueItem p
+{
+	white-space: nowrap;
+	overflow: hidden;
+
+	width: calc(100% - 2.5vh);
+	font-size: var(--font-size2);
+	margin: 0;
+}
+
+.queueItem button
+{
+	display: block;
+
+	margin-left: 0.5vw;
+	width: 1.8vh;
+	height: 1.8vh;
+
+	border: none;
+	border-radius: var(--button-border-radius);
+	background: var(--accent-colour);
+	color: var(--foreground);
+}
+
+#settingsButtonBackground { top: 0; }
+#queueButtonBackground { top: calc(var(--side-panel-button-size) * 1.1); }
+#fullscreenButtonBackground { top: calc(var(--side-panel-button-size) * 2.2); }
+
+#queueInput { flex-direction: row; }
+
+#queueInput input
+{
+	color: var(--foreground);
+	background: rgba(255, 255, 255, 0.1);
+	width: 75%;
+	padding-left: 5px;
+	border: 1px solid var(--accent-colour);
+	border-radius: var(--border-radius);
+}
+
+#queueInput button
+{
+	top: 0; bottom: 0;
+	margin-left: .5vw;
+	padding-top: 0.25vh;
+	background: var(--accent-colour);
+	color: var(--foreground);
+	width: 2.5vh;
+	height: 2.5vh;
+	border: none;
+	border-radius: var(--button-border-radius);
+}
+
+/** WIDTH QUERIES **/
+@media screen and (max-width: 480px)
+{
+	:root { --font-size: 3.5vw; --font-size2: 2.5vw; --side-panel-button-size: 7.5vw; }
+	#musicPlayer { width: 90vw; left: 5vw; right: 5vw; }
+}
+
+@media screen and (min-width: 481px) and (max-width: 767px)
+{
+	:root { --font-size: 3.5vw; --font-size2: 2.5vw; --side-panel-button-size: 5vw; }
+	#musicPlayer { height: 20vh; width: 90vw; left: 5vw; right: 5vw; }
+}
+
+@media screen and (min-width: 768px) and (max-width: 1024px)
+{
+	:root { --font-size: 2.8vw; --font-size2: 1.8vw; --side-panel-button-size: 3vw; }
+	#musicPlayer { width: 80vw; left: 10vw; right: 10vw; }
+}
+
+@media screen and (min-width: 2048px) and (max-width: 2560px) /* 2K - 1440p */
+{
+	:root { --font-size: 1.5vw; --font-size2: 1vw; }
+}
+
+@media screen and (min-width: 2561px) /* >1440p */
+{
+	:root { --font-size: 1.3vw; --font-size2: 0.8vw; }
+}
+
+/** HEIGHT QUERIES **/
+@media (max-height: 600px) and (orientation: landscape)
+{
+	#musicPlayer { height: 20vh; }
+}
+
+@media (min-height: 601px) and (max-height: 768px) and (orientation: landscape)
+{
+	#musicPlayer { height: 15vh; }
+}
+
+/*
+@media (max-width: 600px)
 {
 	:root
 	{
@@ -182,14 +430,70 @@ body, html
 	}
 }
 
-@media screen and (min-width: 600px) and (max-width: 800px)
+@media (min-width: 601px) and (max-width: 750px)
+{
+	:root
+	{
+		--font-size: 3.5vw;
+		--font-size2: 2.5vw;
+		background: blue;
+	}
+
+	#musicPlayer
+	{
+		width: 90vw;
+		left: 5vw;
+		right: 5vw;
+	}
+
+	#buttonGroup
+	{
+		right: 1vw;
+		top: 1vw;
+
+		width: 5vw;
+		height: calc(5.2vw * 3);
+	}
+
+	.buttonGroup
+	{
+		position: absolute;
+		width: 5vw;
+		height: 5vw;
+	}
+
+	#settingsButtonBackground { top: 0; }
+	#queueButtonBackground { top: 5.2vw; }
+	#fullscreenButtonBackground { top: 10.4vw; }
+}
+
+@media (min-width: 751px) and (max-width: 900px)
 {
 	:root
 	{
 		--font-size: 1.75vw;
 		--font-size2: 1.25vw;
 	}
-}
+
+	#buttonGroup
+	{
+		right: 1vw;
+		top: 1vw;
+
+		width: 3vw;
+		height: calc(3.2vw * 3);
+	}
+
+	.buttonGroup
+	{
+		position: absolute;
+		width: 3vw;
+		height: 3vw;
+	}
+
+	#settingsButtonBackground { top: 0; }
+	#queueButtonBackground { top: 3.2vw; }
+	#fullscreenButtonBackground { top: 6.4vw; }}
 
 @media screen and (max-height: 500px)
 {
@@ -200,3 +504,4 @@ body, html
 		bottom: 40vh;
 	}
 }
+*/

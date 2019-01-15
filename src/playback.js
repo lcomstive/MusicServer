@@ -12,6 +12,9 @@ module.exports = class Playback
 		this.queue = JSONReader(globals.QueuePath)
 		this.currentSongIndex = -1
 
+		if(this.queue.lastPlayed)
+			this.currentSongIndex = this.queue.lastPlayed
+
 		this.songState =
 		{
 			paused: false,
@@ -28,8 +31,8 @@ module.exports = class Playback
 		this.timeout = Timers.setInterval(() => { self._update() }, 1000 / UpdatesPerSecond)
 	}
 
-	next() { this.changeSong(this.currentSongIndex < (this.queue.songs.length - 1) ? (this.currentSongIndex + 1) : 0); this._sendUpdates() }
-	prev() { this.changeSong(this.currentSongIndex > 0 ? (this.currentSongIndex - 1) : this.queue.songs.length - 1); this._sendUpdates() }
+	next() { this.changeSong(this.currentSongIndex + 1); this._sendUpdates() }
+	prev() { this.changeSong(this.currentSongIndex - 1); this._sendUpdates() }
 	togglePause(pause = undefined) { this.songState.paused = (pause == undefined ? !this.songState.paused : pause); this._sendUpdates() }
 
 	// Returns false is song is paused or no songs left in queue
@@ -49,8 +52,10 @@ module.exports = class Playback
 	changeSong(index)
 	{
 		// Loop around
-		if(index > this.queue.length - 1 || index < 0)
+		if(index > this.queue.songs.length - 1)
 			index = 0
+		else if(index < 0)
+			index = this.queue.songs.length - 1
 
 		if(this.queue.songs.length == 0)
 		{
@@ -59,8 +64,13 @@ module.exports = class Playback
 			return
 		}
 
-		console.log(`Attempting to get information for playback '${this.queue.songs[index]}'`)
 		let song = this._downloader.getInfo(this.queue.songs[index])
+		if(!song)
+		{
+			console.log(`Failed to play song at index #${index}`)
+
+			return
+		}
 		this.songState = {
 			paused: false,
 			durationTotal: song.duration || 0,
@@ -69,6 +79,9 @@ module.exports = class Playback
 		this.currentSongIndex = index
 		console.log(`Now playing '${song.title}'...`)
 		this._sendUpdates()
+
+		this.queue.lastPlayed = index
+		this.queue.save()
 	}
 
 	// Current song object
@@ -76,19 +89,19 @@ module.exports = class Playback
 	//		id: YouTube video ID
 	//		path: Path to audio file (e.g. 'music/UglrFGiS3f0.mp3')
 	//		title: Song title
-	//		artist: Song artist
 	//		paused: Whether or not playback has been paused
 	//		durationTotal: Overall length of song
 	//		durationRemaining: Length left of song
 	// }
 	currentSong()
 	{
-		if(this.queue.songs.length == 0)
+		if(this.queue.songs.length == 0 || this.currentSongIndex == undefined || this.currentSongIndex < 0)
 			return undefined
 		let song = this._downloader.getInfo(this.queue.songs[this.currentSongIndex])
+		if(!song || !song.title)
+			return
 		return {
 			title: song.title,
-			artist: song.artist,
 			paused: this.songState.paused,
 			id: this.queue.songs[this.currentSongIndex],
 			durationTotal: Math.floor(this.songState.durationTotal),
@@ -113,23 +126,25 @@ module.exports = class Playback
 		this._updateCallbacks = this._updateCallbacks.filter(x => x.id != ID)
 	}
 
+	removeSong(index)
+	{
+		if(index < 0 || index >= this.queue.songs.length)
+			return // invalid index
+		this.queue.songs.splice(index, 1)
+		this.queue.save()
+		this._sendUpdates()
+	}
+
 	_update()
 	{
 		if(this.songState.paused || this.currentSongIndex < 0)
 			return
 		this.songState.durationRemaining -= (1 / UpdatesPerSecond)
 
-		// debug info
-		let song = this._downloader.getInfo(this.queue.songs[this.currentSongIndex])
-		// console.log(`Song '${song.title}' has ${this.songState.durationRemaining} seconds left`)
-
 		if(this.songState.durationRemaining <= 0)
 		{
 			if(globals.settings.removeAfterPlay)
-			{
-				this.queue.songs.splice(this.currentSongIndex, 1)
-				this.queue.save()
-			}
+				this.removeSong(this.currentSongIndex)
 			this.next()
 		}
 	}

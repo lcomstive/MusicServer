@@ -17,6 +17,8 @@ const DefaultTheme = {
 }
 let currentTheme = undefined
 
+// Side Panel
+
 /** THEMES **/
 const Themes = {
 	forest: {
@@ -97,6 +99,60 @@ readSettings = () =>
 	console.log(`Settings:\n\t${JSON.stringify(settings)}`)
 }
 
+saveSettings = () =>
+{
+	setCookie('theme', settings.theme)
+	setCookie('volume', settings.volume)
+}
+
+updateSliderGradient = (song) =>
+{
+	let value = ((song.durationTotal - song.durationRemaining) / song.durationTotal) * 100
+	setThemeProperty('--gradient-value', `${value}%`)
+}
+
+updateSlider = (name, value) =>
+{
+	if(name == 'SEEK')
+	{
+		let remaining = currentSong.durationTotal - value
+		updateSliderGradient({
+			durationTotal: currentSong.durationTotal,
+			durationRemaining: remaining
+		})
+
+		// Update duration remaining text
+		elements.controls.songDuration.html(getTimeString(remaining))
+	}
+	else
+		setThemeProperty(`--gradient-value-${name}`, `${value}%`)
+}
+
+let currentButtonGroup = undefined
+openButtonGroup = (name) =>
+{
+	let element = undefined
+	if(name)
+		element = $(`#sidePanel_${name}`)
+	if(currentButtonGroup)
+		$(`#sidePanel_${currentButtonGroup}`).removeClass('active')
+	let showSidePanel = element == undefined
+	if(element && name != currentButtonGroup)
+	{
+		element.addClass('active')
+		currentButtonGroup = name
+		console.log(`Opened ${name}`)
+		showSidePanel = true
+	}
+	else
+	{
+		currentButtonGroup = undefined
+		showSidePanel = false
+	}
+
+	$('#sidePanel').toggleClass('hidden', !showSidePanel)
+}
+
 /** CONTROLS **/
 togglePause = (pause = undefined, local = false) =>
 {
@@ -112,10 +168,11 @@ togglePause = (pause = undefined, local = false) =>
 		}
 		else
 		{
-			if(elements.audio.readyState >= 3)
+			// if(elements.audio.readyState >= 3)
 				elements.audio.play()
 			resetInterval()
 		}
+		elements.controls.buttons.pause.html(`<i class="fa fa-${pause ? 'play' : 'pause'}"></i>`)
 	}
 	else
 		websocket.send(JSON.stringify({
@@ -126,7 +183,7 @@ togglePause = (pause = undefined, local = false) =>
 
 next = () => POST(`${BaseURL}/api/Songs/Next`)
 prev = () => POST(`${BaseURL}/api/Songs/Prev`)
-changeSong = (index) => POST(`${BaseURL}/api/Songs/Change?index=${isNaN(index) ? 0 : index}`)
+changeSongIndex = (index) => POST(`${BaseURL}/api/Songs/Change?index=${isNaN(index) ? 0 : index}`)
 seek = (seconds) => POST(`${BaseURL}/api/Songs/Seek?length=${isNaN(seconds) ? 0 : seconds}`)
 
 changeSong = (song) =>
@@ -139,7 +196,7 @@ changeSong = (song) =>
 	elements.audio.currentTime = song.durationTotal - song.durationRemaining
 
 	// Update title
-	let title = `${song.artist && song.artist != 'Unknown' ? (song.artist + ' - ') : ''}${song.title}`
+	let title = song.title
 	if(title.length >= currentTheme.titleMaxLength)
 		title = title.substring(0, currentTheme.titleMaxLength) + '...'
 	elements.controls.songTitle.html(title)
@@ -148,16 +205,32 @@ changeSong = (song) =>
 	elements.controls.songDuration.html(getTimeString(song.durationRemaining))
 
 	// Update slider
-	let slider = $('#seekSlider')
-	slider.css('background-image', `${getThemeProperty('foreground')}`)
-	slider.attr('max', song.durationTotal)
-	elements.controls.slider.value = 0
+	elements.controls.slider.value = song.durationTotal - song.durationRemaining
+	$('#seekSlider').attr('max', song.durationTotal)
+	updateSliderGradient(song)
 
 	// Set interval and audio paused correctly
 	togglePause(song.paused, true)
 }
 
+setVolume = (value) =>
+{
+	updateSlider('settings-volume', value * 100)
+	elements.audio.volume = value
+	settings.volume = value
+	document.getElementById('settingsVolumeSlider').value = value
+	saveSettings()
+}
+
+addToQueue = (videoID) =>
+{
+	videoID = videoID.replace(/.+?watch\?v=/gi, '') // if full YouTube link, only get the video ID
+	POST(`${BaseURL}/api/Queue/Add?videoID=${videoID}`)
+	console.log(`Adding '${videoID}' to queue...`)
+}
+
 /** CALLBACKS **/
+const QueueItemTemplate = '<div class=\'queueItem\'><p>$TEXT$</p><button onClick=\'changeSongIndex($INDEX$)\'><i class="fas fa-caret-right"></i></button></div>'
 gotBulkData = (data) =>
 {
 	console.log('Bulk Data')
@@ -165,39 +238,32 @@ gotBulkData = (data) =>
 	// changeSong(data.currentSong)
 	gotUpdate(data.currentSong)
 
-	/*
+	$('#queueItems').html('')
 	for(let i = 0; i < data.queue.length; i++)
-	{
-		let text = `[${i}] `
-		if(data.queue[i].artist)
-			text += `${data.queue[i].artist} - `
-		text += data.queue[i].title
-		$('#queueList').append(`<p>${text}</p>`)
-	}
-	*/
+		$('#queueItems').append(QueueItemTemplate
+									.replace(/\$TEXT\$/g, data.queue[i].title)
+									.replace(/\$INDEX\$/g, i)
+								)
 }
 
 gotUpdate = (data) =>
 {
+	if(!data || !data.title)
+		return // empty 
 	console.log(`Update: ${data.title} at ${data.durationRemaining} (Playing? ${!data.paused})`)
-	let title = `${data.artist && data.artist != 'Unknown' ? (data.artist + ' - ') : ''}${data.title}`
+	let title = data.title
 	if(title.length >= currentTheme.titleMaxLength)
 		title = title.substring(0, currentTheme.titleMaxLength) + '...'
 	elements.audio.currentTime = data.durationTotal - data.durationRemaining
 
 	elements.controls.songTitle.html(title)
 	elements.controls.songDuration.html(getTimeString(data.durationRemaining))
+
+	$('#seekSlider').attr('max', data.durationTotal)
 	elements.controls.slider.value = data.durationTotal - data.durationRemaining
+	updateSliderGradient(data)
 
-	let slider = $('#seekSlider')
-	let value = (data.durationTotal - data.durationRemaining) / data.durationTotal
-	slider.css('background-image',
-	 				`-webkit-gradient(linear, left top, right top, ` +
-					`color-stop(${value}, ${getThemeProperty('accentColour')}), ` +
-					`color-stop(${value}, ${getThemeProperty('foreground')}))`
-				)
-
-	if(data.id != currentSong.id)
+	if(!currentSong.id || data.id != currentSong.id)
 		changeSong(data)
 	else if(data.paused != currentSong.paused)
 		togglePause(data.paused, true)
@@ -233,14 +299,7 @@ _intervalLoop = () =>
 
 	// Update slider
 	elements.controls.slider.value = currentSong.durationTotal - currentSong.durationRemaining
-
-	let slider = $('#seekSlider')
-	let value = (currentSong.durationTotal - currentSong.durationRemaining) / currentSong.durationTotal
-	slider.css('background-image',
-	 				`-webkit-gradient(linear, left top, right top, ` +
-					`color-stop(${value}, ${getThemeProperty('accentColour')}), ` +
-					`color-stop(${value}, ${getThemeProperty('foreground')}))`
-				)
+ 	updateSliderGradient(currentSong)
 }
 
 $(document).ready(() =>
@@ -266,10 +325,16 @@ $(document).ready(() =>
 		}
 	}
 
+	// Set up side panel
+	elements.sidePanel = {
+		sidePanelContent: $('#sidePanelContent')
+	}
+
 	// Create and set up audio DOM
 	elements.audio = document.createElement('audio')
 	elements.audio.autoplay = true
-	elements.audio.volume = settings.volume
+
+	setVolume(settings.volume || 1)
 
 	resetInterval()
 

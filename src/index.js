@@ -22,6 +22,23 @@ const downloader = new Downloader()
 const playback = new Playback(downloader)
 const websocket = new WebSocketServer({ port: globals.settings.websocketPort })
 
+sendQueueToAllClients = () =>
+{
+	let data = {
+		type: 'bulk',
+		info: {
+			queue: [],
+			currentSong: playback.currentSong() || {}
+		}
+	}
+
+	for(let i = 0; i < playback.queue.songs.length; i++)
+		data.info.queue.push(downloader.getInfo(playback.queue.songs[i]))
+
+	for(let i = 0; i < websocketConnections.length; i++)
+		websocketConnections[i].write(JSON.stringify(data))
+}
+
 // Configure websocket
 let websocketConnections = []
 websocket.on('connection', (socket) =>
@@ -51,8 +68,10 @@ websocket.on('connection', (socket) =>
 	socket.on('close', () =>
 	{
 		let index = websocketConnections.findIndex(x => x._id == socket._id)
-		if(index >= 0)
-			websocketConnections.splice(index, 1)
+		if(index < 0)
+			return
+		websocketConnections[index].destroy()
+		websocketConnections.splice(index, 1)
 	})
 	socket.on('error', (err) => { console.log(`WebSocket error - ${err}`) })
 })
@@ -120,7 +139,7 @@ app.post('/api/Songs/Change', (req, res) =>
 		res.end('{ "error": "\'index\' parameter needs to be a number" }')
 		return
 	}
-	playback.changeSong(req.query.index)
+	playback.changeSong(Number(req.query.index))
 	res.end('success')
 })
 
@@ -170,9 +189,11 @@ app.post('/api/Queue/Add', (req, res, next) =>
 	downloader.download(req.query.videoID, {
 		finished: (data) =>
 		{
+			console.log(`Added '${data.videoId}' to queue`)
 			playback.queue.songs.push(data.videoId)
 			playback.queue.save()
-			console.log(`Added '${data.videoId}' to queue`)
+			sendQueueToAllClients()
+
 			if(playback.queue.songs.length == 1) // song we just added
 				playback.changeSong(0) // start playing
 		}
@@ -192,5 +213,5 @@ let server = app.listen(globals.settings.apiPort, () =>
 	console.log(`\tRemove After Playback: ${globals.settings.removeAfterPlay ? 'Yes' : 'No'}`)
 	console.log()
 
-	playback.changeSong(0)
+	playback.changeSong(playback.currentSongIndex)
 })
