@@ -1,6 +1,7 @@
 # Created files
 music/
 queue.json
+silent_start.sh
 
 # Logs
 logs
