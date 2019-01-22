@@ -1,5 +1,7 @@
+/* Import font from Google */
 @import url('https://fonts.googleapis.com/css?family=Montserrat');
 
+/* General variables and options for theming */
 :root
 {
 	--accent-colour: #576C99;
@@ -19,10 +21,9 @@
 	--gradient-value-settings-volume: 50%;
 }
 
-html { background: var(--background-backup); }
-
 body, html
 {
+	/* Take up entire page */
 	width: 100%;
 	height: 100%;
 
@@ -30,10 +31,14 @@ body, html
 	padding: 0;
 	overflow: hidden;
 
+	/* Set default page foreground and background */
 	color: var(--foreground);
 	font-size: var(--font-size);
+
+	/* Set default page font */
 	font-family: var(--font), sans-serif;
 
+	/* Configure background */
 	background: var(--background);
 	background-size: cover;
 	background-position: right center;
@@ -41,6 +46,48 @@ body, html
 	background-attachment: fixed;
 }
 
+/* Generalized style for all sliders */
+input[type=range]
+{
+	appearance: none;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+
+	height: .3vh;
+	outline: none;
+
+	background: var(--foreground);
+	background: -moz-linear-gradient(left, var(--accent-colour) var(--gradient-value), var(--foreground) var(--gradient-value));
+	background: -webkit-linear-gradient(to right, var(--accent-colour) var(--gradient-value), var(--foreground) var(--gradient-value));
+	background: linear-gradient(to right, var(--accent-colour) var(--gradient-value), var(--foreground) var(--gradient-value));
+}
+
+input[type=range]::-webkit-slider-thumb
+{
+	appearance: none;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+
+	width: 1.2vh;
+	height: 1.2vh;
+	border-radius: var(--button-border-radius);
+	background: var(--accent-colour);
+}
+
+input[type=range]::-moz-range-thumb
+{
+	width: 1.2vh;
+	height: 1.2vh;
+	background: var(--accent-colour);
+	border-radius: var(--button-border-radius);
+}
+
+/*
+Class to blur element background
+
+For content to be visible put all children inside
+a <div> container that has `position: absolute`
+*/
 .blur
 {
 	background: inherit;
@@ -61,6 +108,10 @@ body, html
 	-webkit-filter: blur(var(--bluriness));
 }
 
+/* General class to have children aligned horizontally */
+.flexRow { display: flex; flex-direction: row; justify-content: center; }
+
+/* Main player element that holds controls and song info */
 #musicPlayer
 {
 	position: absolute;
@@ -78,6 +129,10 @@ body, html
 	border-radius: var(--border-radius);
 }
 
+/*
+Content of music player,
+	container so content is visible with blurred background
+*/
 .musicPlayerContent
 {
 	display: flex;
@@ -117,8 +172,6 @@ body, html
 	position: inline-flex;
 }
 
-.flexRow { display: flex; flex-direction: row; justify-content: center; }
-
 #musicControls
 {
 	flex-grow: 2;
@@ -155,42 +208,11 @@ body, html
 	width: 100%;
 }
 
-input[type=range]
-{
-	appearance: none;
-	-moz-appearance: none;
-	-webkit-appearance: none;
+/*
+Side panel containing settings and queue
 
-	height: .3vh;
-	outline: none;
-
-	background: var(--foreground);
-	background: -moz-linear-gradient(left, var(--accent-colour) var(--gradient-value), var(--foreground) var(--gradient-value));
-	background: -webkit-linear-gradient(to right, var(--accent-colour) var(--gradient-value), var(--foreground) var(--gradient-value));
-	background: linear-gradient(to right, var(--accent-colour) var(--gradient-value), var(--foreground) var(--gradient-value));
-}
-
-input[type=range]::-webkit-slider-thumb
-{
-	appearance: none;
-	-moz-appearance: none;
-	-webkit-appearance: none;
-
-	width: 1.2vh;
-	height: 1.2vh;
-	border-radius: var(--button-border-radius);
-	background: var(--accent-colour);
-}
-
-input[type=range]::-moz-range-thumb
-{
-	width: 1.2vh;
-	height: 1.2vh;
-	background: var(--accent-colour);
-	border-radius: var(--button-border-radius);
-}
-
-/** SIDE CONTENT **/
+Hidden by default with a translation (width + 1.5vw) right
+*/
 #sidePanel
 {
 	width: 20vw;
@@ -206,8 +228,10 @@ input[type=range]::-moz-range-thumb
 	transition: all var(--transition-time);
 }
 
+/* Show the hidden side panel */
 .hidden { transform: translateX(21.5vw); }
 
+/* Container to hold the content with blurred background */
 #sidePanelContent
 {
 	position: absolute;
@@ -251,17 +275,6 @@ input[type=range]::-moz-range-thumb
 	background: -moz-linear-gradient(left, var(--accent-colour) var(--gradient-value-settings-volume), var(--foreground) var(--gradient-value-settings-volume));
 	background: -webkit-linear-gradient(to right, var(--accent-colour) var(--gradient-value-settings-volume), var(--foreground) var(--gradient-value-settings-volume));
 	background: linear-gradient(to right, var(--accent-colour) var(--gradient-value-settings-volume), var(--foreground) var(--gradient-value-settings-volume));
-}
-
-#buttonGroup
-{
-	background: inherit;
-	position: absolute;
-	right: calc(var(--side-panel-button-size) * 0.25);
-	top: calc(var(--side-panel-button-size) * 0.25);
-
-	width: var(--side-panel-button-size);
-	height: calc(var(--side-panel-button-size) * 3.3);
 }
 
 .buttonGroup
@@ -316,7 +329,7 @@ input[type=range]::-moz-range-thumb
 {
 	display: flex;
 	padding: 0.25vw;
-	height: 2vh;
+	height: 2.5vh;
 }
 .queueItem:nth-child(even) { background: rgba(255, 255, 255, 0.2); }
 
@@ -325,6 +338,7 @@ input[type=range]::-moz-range-thumb
 	white-space: nowrap;
 	overflow: hidden;
 
+	height: 100%;
 	width: calc(100% - 2.5vh);
 	font-size: var(--font-size2);
 	margin: 0;
@@ -334,9 +348,14 @@ input[type=range]::-moz-range-thumb
 {
 	display: block;
 
-	margin-left: 0.5vw;
-	width: 1.8vh;
-	height: 1.8vh;
+	padding: 0;
+	margin-left: 1vw;
+	margin-right: 0.5vw;
+
+	width: 2.25vh;
+	height: 2.25vh;
+	font-size: 2vh;
+	text-align: center;
 
 	border: none;
 	border-radius: var(--button-border-radius);
@@ -354,16 +373,19 @@ input[type=range]::-moz-range-thumb
 {
 	color: var(--foreground);
 	background: rgba(255, 255, 255, 0.1);
-	width: 75%;
+	width: calc(100% - 5vh);
+	height: 100%;
 	padding-left: 5px;
 	border: 1px solid var(--accent-colour);
 	border-radius: var(--border-radius);
+	font-size: var(--font-size2);
 }
 
 #queueInput button
 {
 	top: 0; bottom: 0;
-	margin-left: .5vw;
+	margin-left: .25vh;
+	padding: 0;
 	padding-top: 0.25vh;
 	background: var(--accent-colour);
 	color: var(--foreground);
@@ -371,6 +393,7 @@ input[type=range]::-moz-range-thumb
 	height: 2.5vh;
 	border: none;
 	border-radius: var(--button-border-radius);
+	font-size: 1.5vh;
 }
 
 /** WIDTH QUERIES **/
@@ -378,28 +401,38 @@ input[type=range]::-moz-range-thumb
 {
 	:root { --font-size: 3.5vw; --font-size2: 2.5vw; --side-panel-button-size: 7.5vw; }
 	#musicPlayer { width: 90vw; left: 5vw; right: 5vw; }
+
+	#sidePanel { width: 75vw; }
+	.hidden { transform: translateX(76.5vw); }
+
 }
 
 @media screen and (min-width: 481px) and (max-width: 767px)
 {
 	:root { --font-size: 3.5vw; --font-size2: 2.5vw; --side-panel-button-size: 5vw; }
 	#musicPlayer { height: 20vh; width: 90vw; left: 5vw; right: 5vw; }
+
+	#sidePanel { width: 40vw; }
+	.hidden { transform: translateX(41.5vw); }
 }
 
 @media screen and (min-width: 768px) and (max-width: 1024px)
 {
-	:root { --font-size: 2.8vw; --font-size2: 1.8vw; --side-panel-button-size: 3vw; }
+	:root { --font-size: 1.75vw; --font-size2: 1.5vw; --side-panel-button-size: 3vw; }
 	#musicPlayer { width: 80vw; left: 10vw; right: 10vw; }
+
+	#sidePanel { width: 30vw; }
+	.hidden { transform: translateX(31.5vw); }
 }
 
 @media screen and (min-width: 2048px) and (max-width: 2560px) /* 2K - 1440p */
 {
-	:root { --font-size: 1.5vw; --font-size2: 1vw; }
+	:root { --font-size: 22px; --font-size2: 18px; }
 }
 
 @media screen and (min-width: 2561px) /* >1440p */
 {
-	:root { --font-size: 1.3vw; --font-size2: 0.8vw; }
+	:root { --font-size: 30px; --font-size2: 25px; }
 }
 
 /** HEIGHT QUERIES **/
@@ -412,96 +445,3 @@ input[type=range]::-moz-range-thumb
 {
 	#musicPlayer { height: 15vh; }
 }
-
-/*
-@media (max-width: 600px)
-{
-	:root
-	{
-		--font-size: 3.5vw;
-		--font-size2: 2.5vw;
-	}
-
-	#musicPlayer
-	{
-		width: 90vw;
-		left: 5vw;
-		right: 5vw;
-	}
-}
-
-@media (min-width: 601px) and (max-width: 750px)
-{
-	:root
-	{
-		--font-size: 3.5vw;
-		--font-size2: 2.5vw;
-		background: blue;
-	}
-
-	#musicPlayer
-	{
-		width: 90vw;
-		left: 5vw;
-		right: 5vw;
-	}
-
-	#buttonGroup
-	{
-		right: 1vw;
-		top: 1vw;
-
-		width: 5vw;
-		height: calc(5.2vw * 3);
-	}
-
-	.buttonGroup
-	{
-		position: absolute;
-		width: 5vw;
-		height: 5vw;
-	}
-
-	#settingsButtonBackground { top: 0; }
-	#queueButtonBackground { top: 5.2vw; }
-	#fullscreenButtonBackground { top: 10.4vw; }
-}
-
-@media (min-width: 751px) and (max-width: 900px)
-{
-	:root
-	{
-		--font-size: 1.75vw;
-		--font-size2: 1.25vw;
-	}
-
-	#buttonGroup
-	{
-		right: 1vw;
-		top: 1vw;
-
-		width: 3vw;
-		height: calc(3.2vw * 3);
-	}
-
-	.buttonGroup
-	{
-		position: absolute;
-		width: 3vw;
-		height: 3vw;
-	}
-
-	#settingsButtonBackground { top: 0; }
-	#queueButtonBackground { top: 3.2vw; }
-	#fullscreenButtonBackground { top: 6.4vw; }}
-
-@media screen and (max-height: 500px)
-{
-	#musicPlayer
-	{
-		height: 20vh;
-		top: 40vh;
-		bottom: 40vh;
-	}
-}
-*/

@@ -20,3 +20,12 @@ state (*e.g. paused, seek position*).
 
 ## License
 This project uses the [MIT](./LICENSE) license
+
+## Credits
+Built using
+ - [NodeJS](https://nodejs.org/)
+ - [Simple Websocket](https://github.com/feross/simple-websocket)
+ - [FFMPEG](https://www.ffmpeg.org/)\*
+ - [YouTube MP3 Downloader](https://github.com/ytb2mp3/youtube-mp3-downloader)\*
+
+\* via `npm` packages

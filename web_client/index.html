@@ -5,20 +5,28 @@
 		<meta name="viewport" content="initial-scale=1.0">
 
 		<title>Music Server</title>
-		<link rel="stylesheet" href="./style.css" type="text/css">
+
+		<!-- FontAwesome -->
 		<link rel="stylesheet"
 				href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
 				integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/"
 				crossorigin="anonymous">
 
+		<!-- JQuery -->
 		<script
 			  src="https://code.jquery.com/jquery-3.3.1.min.js"
 			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
 			  crossorigin="anonymous"></script>
+
+		<!-- SimpleWebSocket -->
 		<script src="./simplewebsocket.min.js"></script>
+
+		<!-- Custom -->
+		<link rel="stylesheet" href="./style.css" type="text/css">
 		<script src="./index.js"></script>
 	</head>
 	<body>
+		<!-- Music controls and song info -->
 		<div id="musicPlayer" class="blur">
 			<div class="musicPlayerContent">
 				<p id="songTitle">No Song Playing</p>
@@ -33,17 +41,23 @@
 				<input id="seekSlider" type="range" min="0" max="60" value="30" step="1" onInput="updateSlider('SEEK', this.value)" onChange="seek(this.value)">
 			</div>
 		</div>
+		<!-- Side panel for queue and settings -->
 		<div id="sidePanel" class="hidden">
+			<!-- Buttons to bring side panel into view -->
 			<div id="settingsButtonBackground" class="blur buttonGroup">
 				<button id="settingsButton" onClick="openButtonGroup('settings')"><i class="fas fa-cog"></i></button>
 			</div>
 			<div id="queueButtonBackground" class="blur buttonGroup">
 				<button id="queueButton" onClick="openButtonGroup('queue')"><i class="fas fa-sliders-h"></i></button>
 			</div>
+			<!-- Fullscreen button, code not implemented
 			<div id="fullscreenButtonBackground" class="blur buttonGroup">
 				<button id="fullscreenButton" onClick="openButtonGroup(undefined)"><i class="fas fa-expand-arrows-alt"></i></button>
 			</div>
+			-->
+
 			<div id="sidePanelContent" class="blur">
+				<!-- Settings -->
 				<div id="sidePanel_settings">
 					<h1 style="text-align: center; height: 5vh">Settings</h1>
 					<span id="settingsVolume" class="row">
@@ -51,16 +65,19 @@
 						<input id="settingsVolumeSlider" type="range" min="0.0" max="1.0" value="0.5" step="0.1" onInput="updateSlider('settings-volume', this.value * 100); setVolume(this.value)">
 					</span>
 				</div>
+				<!-- Queue -->
 				<div id="sidePanel_queue">
 					<h1 style="text-align: center; height: 5vh">Queue</h1>
 					<div id="queueItems">
 						<!--
-						<span class="queueItem">
-							<p>ARTIST - TITLE</p>
-						</span>
-						<span class="queueItem">
-							<p>ARTIST - TITLE</p>
-						</span>
+						Items added via `index.js`, with format
+
+						<div class="queueItem">
+							<p>SONG TITLE</p>
+							<button onClick='...'>
+								<i class="fontAwesome_icon"></i>
+							</button>
+						</div>
 						-->
 					</div>
 					<div id="queueInput">

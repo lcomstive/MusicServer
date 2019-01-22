@@ -169,7 +169,15 @@ togglePause = (pause = undefined, local = false) =>
 		else
 		{
 			// if(elements.audio.readyState >= 3)
-				elements.audio.play()
+			console.log(`Audio State: ${elements.audio.readyState}`)
+			const playPromise = Promise.resolve(elements.audio.play())
+
+			playPromise.then(() =>
+			{
+				console.log('Good')
+			})
+			.catch(e => console.error(`Failed to play audio: ${e}`))
+
 			resetInterval()
 		}
 		elements.controls.buttons.pause.html(`<i class="fa fa-${pause ? 'play' : 'pause'}"></i>`)
@@ -249,7 +257,7 @@ gotBulkData = (data) =>
 gotUpdate = (data) =>
 {
 	if(!data || !data.title)
-		return // empty 
+		return // empty
 	console.log(`Update: ${data.title} at ${data.durationRemaining} (Playing? ${!data.paused})`)
 	let title = data.title
 	if(title.length >= currentTheme.titleMaxLength)
