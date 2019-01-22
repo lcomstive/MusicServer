@@ -141,11 +141,15 @@ module.exports = class Playback
 			return
 		this.songState.durationRemaining -= (1 / UpdatesPerSecond)
 
+		// Should the next song be played?
 		if(this.songState.durationRemaining <= 0)
 		{
 			if(globals.settings.removeAfterPlay)
 				this.removeSong(this.currentSongIndex)
-			this.next()
+			if(globals.settings.shuffle)
+				this.changeSong(Math.floor(Math.random() * this.queue.songs.length))
+			else
+				this.next()
 		}
 	}
 
