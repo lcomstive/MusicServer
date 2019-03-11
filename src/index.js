@@ -8,7 +8,6 @@ const Playback = require('./playback')
 const WebSocketServer = require('simple-websocket/server')
 
 // Configure default settings
-console.log('Creating JSONReader - Settings')
 globals.settings = JSONReader(globals.SettingsPath)
 globals.settings.apiPort = globals.settings.apiPort == undefined ? 8081 : globals.settings.apiPort
 globals.settings.websocketPort = globals.settings.websocketPort == undefined ? 8082 : globals.settings.websocketPort
