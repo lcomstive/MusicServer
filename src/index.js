@@ -11,8 +11,8 @@ const WebSocketServer = require('simple-websocket/server')
 globals.settings = JSONReader(globals.SettingsPath)
 globals.settings.apiPort = globals.settings.apiPort == undefined ? 8081 : globals.settings.apiPort
 globals.settings.websocketPort = globals.settings.websocketPort == undefined ? 8082 : globals.settings.websocketPort
-globals.settings.shuffle = globals.settings.shuffle == undefined ? true : globals.settings.shuffle
-globals.settings.removeAfterPlay = globals.settings.removeAfterPlay == undefined ? true : globals.settings.removeAfterPlay
+globals.settings.shuffle = globals.settings.shuffle == undefined ? false : globals.settings.shuffle
+globals.settings.removeAfterPlay = globals.settings.removeAfterPlay == undefined ? false : globals.settings.removeAfterPlay
 globals.settings.save()
 
 // Create instances
@@ -36,12 +36,16 @@ sendQueueToAllClients = () =>
 
 	for(let i = 0; i < websocketConnections.length; i++)
 		websocketConnections[i].write(JSON.stringify(data))
+	console.log('Send new queue to all clients')
 }
 
 // Configure websocket
 let websocketConnections = []
 websocket.on('connection', (socket) =>
 {
+	if(websocketConnections.length == 0)
+		playback.togglePause(false)
+
 	websocketConnections.push(socket)
 	let bulkData = {
 		type: 'bulk',
@@ -71,6 +75,9 @@ websocket.on('connection', (socket) =>
 			return
 		websocketConnections[index].destroy()
 		websocketConnections.splice(index, 1)
+
+		if(websocketConnections.length == 0)
+			playback.togglePause(true)
 	})
 	socket.on('error', (err) => { console.log(`WebSocket error - ${err}`) })
 })
@@ -84,6 +91,8 @@ playback.addUpdateCallback(() =>
 	for(let i = 0; i < websocketConnections.length; i++)
 		websocketConnections[i].write(JSON.stringify(data))
 })
+
+playback.addQueueChangeCallback(() => sendQueueToAllClients())
 
 // Set up express app
 app.use(BodyParser.json())

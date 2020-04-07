@@ -119,11 +119,27 @@ module.exports = class Playback
 		return ID
 	}
 
+	addQueueChangeCallback(callback)
+	{
+		if(!this._queueChangeCallbacks)
+			this._queueChangeCallbacks = []
+		let ID = Math.floor(Math.random() * 100)
+		this._queueChangeCallbacks.push({ id: ID, callback: callback })
+		return ID
+	}
+
 	removeUpdateCallback(ID)
 	{
 		if(!this._updateCallbacks || !this._updateCallbacks[ID])
 			return
 		this._updateCallbacks = this._updateCallbacks.filter(x => x.id != ID)
+	}
+
+	removeUpdateCallback(ID)
+	{
+		if(!this._queueChangeCallbacks || !this._queueChangeCallbacks[ID])
+			return
+		this._queueChangeCallbacks = this._queueChangeCallbacks.filter(x => x.id != ID)
 	}
 
 	removeSong(index)
@@ -157,5 +173,11 @@ module.exports = class Playback
 	{
 		for(let i = 0; i < this._updateCallbacks.length; i++)
 			this._updateCallbacks[i].callback()
+	}
+
+	_sendQueueChangeUpdates()
+	{
+		for(let i = 0; i < this._queueChangeCallbacks.length; i++)
+			this._queueChangeCallbacks[i].callback()
 	}
 }
